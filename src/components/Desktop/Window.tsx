@@ -42,10 +42,17 @@ const Window: React.FC<WindowProps> = ({
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDirection, setResizeDirection] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const windowRef = useRef<HTMLDivElement>(null);
+  const [previousState, setPreviousState] = useState({
+    position: defaultPosition,
+    size: defaultSize
+  });
 
   // Handle window dragging
   const onDragStart = (e: React.MouseEvent) => {
+    if (isFullscreen) return;
+    
     e.preventDefault();
     onFocus();
     setIsDragging(true);
@@ -57,11 +64,37 @@ const Window: React.FC<WindowProps> = ({
 
   // Handle window resizing
   const onResizeStart = (e: React.MouseEvent, direction: string) => {
+    if (isFullscreen) return;
+    
     e.preventDefault();
     e.stopPropagation();
     setIsResizing(true);
     setResizeDirection(direction);
     onFocus();
+  };
+
+  // Toggle fullscreen
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      // Save current state before going fullscreen
+      setPreviousState({
+        position,
+        size
+      });
+      
+      // Set fullscreen
+      setPosition({ x: 0, y: 0 });
+      setSize({ 
+        width: window.innerWidth, 
+        height: window.innerHeight - 56 // Adjust for taskbar height
+      });
+      setIsFullscreen(true);
+    } else {
+      // Restore previous state
+      setPosition(previousState.position);
+      setSize(previousState.size);
+      setIsFullscreen(false);
+    }
   };
 
   useEffect(() => {
@@ -130,6 +163,7 @@ const Window: React.FC<WindowProps> = ({
       className={cn(
         "absolute window-glass rounded-lg overflow-hidden flex flex-col",
         isActive ? "shadow-lg shadow-neon-red/20 z-50" : "z-40 opacity-95",
+        isFullscreen ? "fullscreen-window" : "",
         className
       )}
       style={{
@@ -158,6 +192,7 @@ const Window: React.FC<WindowProps> = ({
             <Minimize size={14} />
           </button>
           <button 
+            onClick={toggleFullscreen} 
             className="h-5 w-5 flex items-center justify-center text-gray-400 hover:text-white hover:bg-neon-red/20 rounded-sm"
           >
             <Maximize size={14} />
@@ -176,15 +211,19 @@ const Window: React.FC<WindowProps> = ({
         {children}
       </div>
 
-      {/* Resize handles */}
-      <div className="absolute right-0 bottom-0 w-4 h-4 cursor-se-resize" onMouseDown={(e) => onResizeStart(e, 'se')}></div>
-      <div className="absolute bottom-0 left-0 right-0 h-1 cursor-s-resize" onMouseDown={(e) => onResizeStart(e, 's')}></div>
-      <div className="absolute top-0 bottom-0 right-0 w-1 cursor-e-resize" onMouseDown={(e) => onResizeStart(e, 'e')}></div>
-      <div className="absolute top-0 left-0 bottom-0 w-1 cursor-w-resize" onMouseDown={(e) => onResizeStart(e, 'w')}></div>
-      <div className="absolute top-0 left-0 right-0 h-1 cursor-n-resize" onMouseDown={(e) => onResizeStart(e, 'n')}></div>
-      <div className="absolute left-0 bottom-0 w-4 h-4 cursor-sw-resize" onMouseDown={(e) => onResizeStart(e, 'sw')}></div>
-      <div className="absolute right-0 top-0 w-4 h-4 cursor-ne-resize" onMouseDown={(e) => onResizeStart(e, 'ne')}></div>
-      <div className="absolute left-0 top-0 w-4 h-4 cursor-nw-resize" onMouseDown={(e) => onResizeStart(e, 'nw')}></div>
+      {/* Resize handles - only show when not in fullscreen */}
+      {!isFullscreen && (
+        <>
+          <div className="absolute right-0 bottom-0 w-4 h-4 cursor-se-resize" onMouseDown={(e) => onResizeStart(e, 'se')}></div>
+          <div className="absolute bottom-0 left-0 right-0 h-1 cursor-s-resize" onMouseDown={(e) => onResizeStart(e, 's')}></div>
+          <div className="absolute top-0 bottom-0 right-0 w-1 cursor-e-resize" onMouseDown={(e) => onResizeStart(e, 'e')}></div>
+          <div className="absolute top-0 left-0 bottom-0 w-1 cursor-w-resize" onMouseDown={(e) => onResizeStart(e, 'w')}></div>
+          <div className="absolute top-0 left-0 right-0 h-1 cursor-n-resize" onMouseDown={(e) => onResizeStart(e, 'n')}></div>
+          <div className="absolute left-0 bottom-0 w-4 h-4 cursor-sw-resize" onMouseDown={(e) => onResizeStart(e, 'sw')}></div>
+          <div className="absolute right-0 top-0 w-4 h-4 cursor-ne-resize" onMouseDown={(e) => onResizeStart(e, 'ne')}></div>
+          <div className="absolute left-0 top-0 w-4 h-4 cursor-nw-resize" onMouseDown={(e) => onResizeStart(e, 'nw')}></div>
+        </>
+      )}
     </div>
   );
 };

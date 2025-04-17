@@ -1,18 +1,36 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Globe, ArrowLeft, ArrowRight, RotateCw, X, BookmarkIcon } from 'lucide-react';
+import { toast } from "@/components/ui/use-toast";
 
 interface ProxyBrowserProps {
   defaultUrl?: string;
 }
 
 const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.bing.com/' }) => {
+  // The ultraviolet proxy URL - this should be replaced with a real ultraviolet instance
+  const proxyUrl = 'https://math.internationaltester.com/';
+  
   const [url, setUrl] = useState(defaultUrl);
   const [inputUrl, setInputUrl] = useState(defaultUrl);
   const [isLoading, setIsLoading] = useState(false);
   const [history, setHistory] = useState<string[]>([defaultUrl]);
   const [historyIndex, setHistoryIndex] = useState(0);
+  const [proxyReady, setProxyReady] = useState(false);
   const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    // Load the initial URL through proxy
+    setIsLoading(true);
+    
+    // This simulates checking if proxy is ready
+    const timer = setTimeout(() => {
+      setProxyReady(true);
+      setIsLoading(false);
+    }, 1500);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleUrlSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +76,7 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
   const refresh = () => {
     setIsLoading(true);
     if (iframeRef.current) {
-      iframeRef.current.src = url;
+      iframeRef.current.src = `${proxyUrl}${encodeURIComponent(url)}`;
     }
   };
 
@@ -68,6 +86,11 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
 
   const handleIframeLoad = () => {
     setIsLoading(false);
+  };
+
+  const getProxyUrl = (targetUrl: string) => {
+    // Basic implementation - real Ultraviolet would have a specific format
+    return `${proxyUrl}service/${encodeURIComponent(targetUrl)}`;
   };
 
   return (
@@ -125,14 +148,23 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
       
       {/* Browser content */}
       <div className="flex-1 bg-white">
-        <iframe 
-          ref={iframeRef}
-          src={url}
-          className="w-full h-full border-0"
-          onLoad={handleIframeLoad}
-          title="Proxy Browser"
-          sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-        />
+        {!proxyReady ? (
+          <div className="w-full h-full flex items-center justify-center bg-neon-dark">
+            <div className="text-center">
+              <div className="animate-spin h-8 w-8 border-t-2 border-neon-red rounded-full mx-auto mb-4"></div>
+              <p className="text-white">Loading proxy service...</p>
+            </div>
+          </div>
+        ) : (
+          <iframe 
+            ref={iframeRef}
+            src={getProxyUrl(url)}
+            className="w-full h-full border-0"
+            onLoad={handleIframeLoad}
+            title="Proxy Browser"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+          />
+        )}
       </div>
     </div>
   );

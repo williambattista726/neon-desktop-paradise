@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Cpu, HardDrive, Thermometer, Activity, BarChart3 } from 'lucide-react';
@@ -5,30 +6,112 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 interface SystemMonitorProps {}
 
+interface SystemStatus {
+  cpuUsage: number;
+  memoryUsage: number;
+  temperature: number;
+  batteryLevel?: number;
+  network: {
+    download: number;
+    upload: number;
+  }
+}
+
 const SystemMonitor: React.FC<SystemMonitorProps> = () => {
   const [cpuUsage, setCpuUsage] = useState<{ time: string; value: number }[]>([]);
   const [memoryUsage, setMemoryUsage] = useState<{ time: string; value: number }[]>([]);
+  const [systemStatus, setSystemStatus] = useState<SystemStatus>({
+    cpuUsage: 0,
+    memoryUsage: 0,
+    temperature: 0,
+    network: { download: 0, upload: 0 }
+  });
+  
+  // Function to read real system info (limited by browser APIs)
+  const getSystemInfo = async () => {
+    try {
+      // Get memory info if available
+      let memoryInfo;
+      if ('memory' in performance) {
+        memoryInfo = (performance as any).memory;
+      }
+      
+      // Get network info if available
+      let networkInfo = {
+        download: Math.floor(Math.random() * 1000),
+        upload: Math.floor(Math.random() * 500)
+      };
+      
+      // Battery info
+      let batteryLevel;
+      if ('getBattery' in navigator) {
+        const battery = await (navigator as any).getBattery();
+        batteryLevel = battery.level * 100;
+      }
+      
+      // Build status object with real data where possible, simulated where not
+      const status: SystemStatus = {
+        // CPU usage is hard to get in browser, so simulate it
+        cpuUsage: Math.floor(Math.random() * 40) + 10,
+        
+        // Use real memory info if available, otherwise simulate
+        memoryUsage: memoryInfo 
+          ? Math.round((memoryInfo.usedJSHeapSize / memoryInfo.jsHeapSizeLimit) * 100) 
+          : Math.floor(Math.random() * 30) + 40,
+        
+        // Temperature is impossible to get, so simulate
+        temperature: Math.floor(Math.random() * 20) + 40,
+        
+        // Network data
+        network: networkInfo
+      };
+      
+      if (batteryLevel !== undefined) {
+        status.batteryLevel = batteryLevel;
+      }
+      
+      return status;
+    } catch (error) {
+      console.error('Error getting system info:', error);
+      // Return simulated data as fallback
+      return {
+        cpuUsage: Math.floor(Math.random() * 40) + 10,
+        memoryUsage: Math.floor(Math.random() * 30) + 40,
+        temperature: Math.floor(Math.random() * 20) + 40,
+        network: {
+          download: Math.floor(Math.random() * 1000),
+          upload: Math.floor(Math.random() * 500)
+        }
+      };
+    }
+  };
   
   useEffect(() => {
-    const interval = setInterval(() => {
+    const updateSystemInfo = async () => {
+      const status = await getSystemInfo();
+      setSystemStatus(status);
+      
       const now = new Date();
       const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       
-      const newCpuValue = Math.floor(Math.random() * 40) + 10; // 10-50%
-      const newMemValue = Math.floor(Math.random() * 30) + 40; // 40-70%
-      
       setCpuUsage(prev => {
-        const newData = [...prev, { time: timeLabel, value: newCpuValue }];
+        const newData = [...prev, { time: timeLabel, value: status.cpuUsage }];
         if (newData.length > 20) newData.shift();
         return newData;
       });
       
       setMemoryUsage(prev => {
-        const newData = [...prev, { time: timeLabel, value: newMemValue }];
+        const newData = [...prev, { time: timeLabel, value: status.memoryUsage }];
         if (newData.length > 20) newData.shift();
         return newData;
       });
-    }, 2000);
+    };
+    
+    // Initial update
+    updateSystemInfo();
+    
+    // Set up interval for updates
+    const interval = setInterval(updateSystemInfo, 2000);
     
     return () => clearInterval(interval);
   }, []);
@@ -47,9 +130,11 @@ const SystemMonitor: React.FC<SystemMonitorProps> = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {cpuUsage.length > 0 ? cpuUsage[cpuUsage.length - 1].value : 0}%
+              {systemStatus.cpuUsage}%
             </div>
-            <p className="text-xs text-gray-400">4 cores @ 3.2GHz</p>
+            <p className="text-xs text-gray-400">
+              {navigator.hardwareConcurrency || 4} cores @ {navigator.deviceMemory ? `${navigator.deviceMemory}GB RAM` : '3.2GHz'}
+            </p>
           </CardContent>
         </Card>
         
@@ -62,9 +147,11 @@ const SystemMonitor: React.FC<SystemMonitorProps> = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {memoryUsage.length > 0 ? memoryUsage[memoryUsage.length - 1].value : 0}%
+              {systemStatus.memoryUsage}%
             </div>
-            <p className="text-xs text-gray-400">8GB DDR4 RAM</p>
+            <p className="text-xs text-gray-400">
+              {navigator.deviceMemory ? `${navigator.deviceMemory}GB RAM` : '8GB DDR4 RAM'}
+            </p>
           </CardContent>
         </Card>
         
