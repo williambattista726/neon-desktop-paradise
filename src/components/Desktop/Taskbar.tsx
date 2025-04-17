@@ -124,7 +124,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
                 <div className="p-2">
                   <div className="py-2 px-4 border-b border-neon-red/20">
                     <p className="text-white text-sm font-semibold">{user?.username}</p>
-                    <p className="text-gray-400 text-xs truncate">{user?.email}</p>
+                    {/* Removed the reference to user?.email */}
                   </div>
                   <button 
                     onClick={logout}
