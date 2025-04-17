@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "start":"npm run dev && npm run start:proxy"
+    "start":"npm run dev && npm run start:proxy",
     "dev": "vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
