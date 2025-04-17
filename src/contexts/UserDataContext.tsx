@@ -6,6 +6,12 @@ interface UserPreferences {
   wallpaper: string;
   theme: string;
   iconsArrangement: { id: string; position: { x: number; y: number } }[];
+  brightness: number;
+  volume: number;
+  darkMode: boolean;
+  animations: boolean;
+  notificationSounds: boolean;
+  autoUpdate: boolean;
 }
 
 interface AppSettings {
@@ -23,7 +29,13 @@ interface UserDataContextType {
 const defaultPreferences: UserPreferences = {
   wallpaper: 'default',
   theme: 'neon-red',
-  iconsArrangement: []
+  iconsArrangement: [],
+  brightness: 100,
+  volume: 75,
+  darkMode: true,
+  animations: true,
+  notificationSounds: true,
+  autoUpdate: true
 };
 
 const UserDataContext = createContext<UserDataContextType | undefined>(undefined);

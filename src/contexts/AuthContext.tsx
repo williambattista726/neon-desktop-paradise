@@ -5,15 +5,14 @@ import { toast } from '@/components/ui/use-toast';
 interface User {
   id: string;
   username: string;
-  email: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
-  register: (username: string, email: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<boolean>;
+  register: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -48,7 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
       // Simulate API call
@@ -56,14 +55,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Check if user exists in localStorage
       const users = JSON.parse(localStorage.getItem('neon_os_users') || '[]');
-      const foundUser = users.find((u: any) => u.email === email && u.password === password);
+      const foundUser = users.find((u: any) => u.username === username && u.password === password);
       
       if (foundUser) {
         // Create a user object without the password
         const userObj = {
           id: foundUser.id,
-          username: foundUser.username,
-          email: foundUser.email
+          username: foundUser.username
         };
         
         setUser(userObj);
@@ -79,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         toast({
           title: "Login failed",
-          description: "Invalid email or password",
+          description: "Invalid username or password",
           variant: "destructive"
         });
         return false;
@@ -97,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (username: string, email: string, password: string): Promise<boolean> => {
+  const register = async (username: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     try {
       // Simulate API call
@@ -106,10 +104,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Check if user already exists
       const users = JSON.parse(localStorage.getItem('neon_os_users') || '[]');
       
-      if (users.some((u: any) => u.email === email)) {
+      if (users.some((u: any) => u.username === username)) {
         toast({
           title: "Registration failed",
-          description: "Email already in use",
+          description: "Username already in use",
           variant: "destructive"
         });
         return false;
@@ -119,7 +117,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newUser = {
         id: Date.now().toString(),
         username,
-        email,
         password
       };
       
@@ -129,8 +126,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Create a user object without the password for session
       const userObj = {
         id: newUser.id,
-        username: newUser.username,
-        email: newUser.email
+        username: newUser.username
       };
       
       setUser(userObj);

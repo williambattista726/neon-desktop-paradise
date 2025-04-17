@@ -17,6 +17,11 @@ interface SystemStatus {
   }
 }
 
+// Define a TypeScript interface to extend Navigator
+interface NavigatorWithMemory extends Navigator {
+  deviceMemory?: number;
+}
+
 const SystemMonitor: React.FC<SystemMonitorProps> = () => {
   const [cpuUsage, setCpuUsage] = useState<{ time: string; value: number }[]>([]);
   const [memoryUsage, setMemoryUsage] = useState<{ time: string; value: number }[]>([]);
@@ -133,7 +138,7 @@ const SystemMonitor: React.FC<SystemMonitorProps> = () => {
               {systemStatus.cpuUsage}%
             </div>
             <p className="text-xs text-gray-400">
-              {navigator.hardwareConcurrency || 4} cores @ {navigator.deviceMemory ? `${navigator.deviceMemory}GB RAM` : '3.2GHz'}
+              {navigator.hardwareConcurrency || 4} cores @ {(navigator as NavigatorWithMemory).deviceMemory ? `${(navigator as NavigatorWithMemory).deviceMemory}GB RAM` : '3.2GHz'}
             </p>
           </CardContent>
         </Card>
@@ -150,7 +155,7 @@ const SystemMonitor: React.FC<SystemMonitorProps> = () => {
               {systemStatus.memoryUsage}%
             </div>
             <p className="text-xs text-gray-400">
-              {navigator.deviceMemory ? `${navigator.deviceMemory}GB RAM` : '8GB DDR4 RAM'}
+              {(navigator as NavigatorWithMemory).deviceMemory ? `${(navigator as NavigatorWithMemory).deviceMemory}GB RAM` : '8GB DDR4 RAM'}
             </p>
           </CardContent>
         </Card>

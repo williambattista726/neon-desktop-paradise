@@ -1,8 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/components/ui/use-toast";
+import { useUserData } from "@/contexts/UserDataContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Monitor, 
   Volume2, 
@@ -10,19 +13,84 @@ import {
   UserCircle2, 
   Shield, 
   BellRing,
-  Palette
+  Palette,
+  LogOut
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface SettingsProps {}
 
 const Settings: React.FC<SettingsProps> = () => {
-  const [volume, setVolume] = useState(75);
-  const [brightness, setBrightness] = useState(100);
+  const { user, logout } = useAuth();
+  const { preferences, updatePreferences } = useUserData();
   
-  const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
-  const [animations, setAnimations] = useState(true);
-  const [autoUpdate, setAutoUpdate] = useState(true);
+  // Local state to track changes before saving to context
+  const [volume, setVolume] = useState(preferences.volume);
+  const [brightness, setBrightness] = useState(preferences.brightness);
+  const [notifications, setNotifications] = useState(preferences.notificationSounds);
+  const [darkMode, setDarkMode] = useState(preferences.darkMode);
+  const [animations, setAnimations] = useState(preferences.animations);
+  const [autoUpdate, setAutoUpdate] = useState(preferences.autoUpdate);
+  const [selectedTheme, setSelectedTheme] = useState(preferences.theme);
+  
+  // Update local state when preferences change
+  useEffect(() => {
+    setVolume(preferences.volume);
+    setBrightness(preferences.brightness);
+    setNotifications(preferences.notificationSounds);
+    setDarkMode(preferences.darkMode);
+    setAnimations(preferences.animations);
+    setAutoUpdate(preferences.autoUpdate);
+    setSelectedTheme(preferences.theme);
+  }, [preferences]);
+  
+  // Handle theme selection
+  const handleThemeChange = (themeColor: string) => {
+    setSelectedTheme(themeColor);
+    updatePreferences({ theme: themeColor });
+    toast({
+      title: "Theme Updated",
+      description: `Theme color changed to ${themeColor}`,
+    });
+  };
+  
+  // Handle brightness change
+  const handleBrightnessChange = (value: number[]) => {
+    const newBrightness = value[0];
+    setBrightness(newBrightness);
+    updatePreferences({ brightness: newBrightness });
+  };
+  
+  // Handle volume change
+  const handleVolumeChange = (value: number[]) => {
+    const newVolume = value[0];
+    setVolume(newVolume);
+    updatePreferences({ volume: newVolume });
+  };
+  
+  // Handle toggle switches
+  const handleDarkModeToggle = (checked: boolean) => {
+    setDarkMode(checked);
+    updatePreferences({ darkMode: checked });
+    toast({
+      title: checked ? "Dark Mode Enabled" : "Dark Mode Disabled",
+    });
+  };
+  
+  const handleAnimationsToggle = (checked: boolean) => {
+    setAnimations(checked);
+    updatePreferences({ animations: checked });
+  };
+  
+  const handleNotificationsToggle = (checked: boolean) => {
+    setNotifications(checked);
+    updatePreferences({ notificationSounds: checked });
+  };
+  
+  const handleAutoUpdateToggle = (checked: boolean) => {
+    setAutoUpdate(checked);
+    updatePreferences({ autoUpdate: checked });
+  };
   
   return (
     <div className="h-full flex flex-col bg-neon-dark">
@@ -86,7 +154,7 @@ const Settings: React.FC<SettingsProps> = () => {
                     min={0}
                     max={100}
                     step={1}
-                    onValueChange={(val) => setBrightness(val[0])}
+                    onValueChange={handleBrightnessChange}
                     className="[&>span]:bg-neon-red"
                   />
                 </div>
@@ -98,7 +166,7 @@ const Settings: React.FC<SettingsProps> = () => {
                   </div>
                   <Switch 
                     checked={darkMode}
-                    onCheckedChange={setDarkMode}
+                    onCheckedChange={handleDarkModeToggle}
                     className="bg-gray-700 data-[state=checked]:bg-neon-red"
                   />
                 </div>
@@ -110,7 +178,7 @@ const Settings: React.FC<SettingsProps> = () => {
                   </div>
                   <Switch 
                     checked={animations}
-                    onCheckedChange={setAnimations}
+                    onCheckedChange={handleAnimationsToggle}
                     className="bg-gray-700 data-[state=checked]:bg-neon-red"
                   />
                 </div>
@@ -131,7 +199,7 @@ const Settings: React.FC<SettingsProps> = () => {
                     min={0}
                     max={100}
                     step={1}
-                    onValueChange={(val) => setVolume(val[0])}
+                    onValueChange={handleVolumeChange}
                     className="[&>span]:bg-neon-red"
                   />
                 </div>
@@ -143,7 +211,7 @@ const Settings: React.FC<SettingsProps> = () => {
                   </div>
                   <Switch 
                     checked={notifications}
-                    onCheckedChange={setNotifications}
+                    onCheckedChange={handleNotificationsToggle}
                     className="bg-gray-700 data-[state=checked]:bg-neon-red"
                   />
                 </div>
@@ -187,24 +255,48 @@ const Settings: React.FC<SettingsProps> = () => {
                 <div>
                   <label className="text-sm text-gray-300 block mb-2">Theme Color</label>
                   <div className="flex space-x-2">
-                    <button className="w-8 h-8 rounded-full bg-neon-red ring-2 ring-neon-red ring-offset-2 ring-offset-neon-darker"></button>
-                    <button className="w-8 h-8 rounded-full bg-neon-blue"></button>
-                    <button className="w-8 h-8 rounded-full bg-neon-purple"></button>
-                    <button className="w-8 h-8 rounded-full bg-green-500"></button>
-                    <button className="w-8 h-8 rounded-full bg-orange-500"></button>
+                    <button 
+                      onClick={() => handleThemeChange('neon-red')}
+                      className={`w-8 h-8 rounded-full bg-neon-red ${selectedTheme === 'neon-red' ? 'ring-2 ring-neon-red ring-offset-2 ring-offset-neon-darker' : ''}`}
+                    ></button>
+                    <button 
+                      onClick={() => handleThemeChange('neon-blue')}
+                      className={`w-8 h-8 rounded-full bg-neon-blue ${selectedTheme === 'neon-blue' ? 'ring-2 ring-neon-blue ring-offset-2 ring-offset-neon-darker' : ''}`}
+                    ></button>
+                    <button 
+                      onClick={() => handleThemeChange('neon-purple')}
+                      className={`w-8 h-8 rounded-full bg-neon-purple ${selectedTheme === 'neon-purple' ? 'ring-2 ring-neon-purple ring-offset-2 ring-offset-neon-darker' : ''}`}
+                    ></button>
+                    <button 
+                      onClick={() => handleThemeChange('green')}
+                      className={`w-8 h-8 rounded-full bg-green-500 ${selectedTheme === 'green' ? 'ring-2 ring-green-500 ring-offset-2 ring-offset-neon-darker' : ''}`}
+                    ></button>
+                    <button 
+                      onClick={() => handleThemeChange('orange')}
+                      className={`w-8 h-8 rounded-full bg-orange-500 ${selectedTheme === 'orange' ? 'ring-2 ring-orange-500 ring-offset-2 ring-offset-neon-darker' : ''}`}
+                    ></button>
                   </div>
                 </div>
                 
                 <div>
                   <label className="text-sm text-gray-300 block mb-2">Background Style</label>
                   <div className="grid grid-cols-3 gap-2">
-                    <button className="p-1 border-2 border-neon-red rounded overflow-hidden">
+                    <button 
+                      onClick={() => updatePreferences({ wallpaper: 'animated' })}
+                      className={`p-1 ${preferences.wallpaper === 'animated' ? 'border-2 border-neon-red' : 'border border-neon-red/30'} rounded overflow-hidden`}
+                    >
                       <div className="h-16 rounded bg-gradient-to-br from-neon-dark to-neon-darker animate-background-flow"></div>
                     </button>
-                    <button className="p-1 border border-neon-red/30 rounded overflow-hidden">
+                    <button 
+                      onClick={() => updatePreferences({ wallpaper: 'solid' })}
+                      className={`p-1 ${preferences.wallpaper === 'solid' ? 'border-2 border-neon-red' : 'border border-neon-red/30'} rounded overflow-hidden`}
+                    >
                       <div className="h-16 rounded bg-neon-dark"></div>
                     </button>
-                    <button className="p-1 border border-neon-red/30 rounded overflow-hidden">
+                    <button 
+                      onClick={() => updatePreferences({ wallpaper: 'gradient' })}
+                      className={`p-1 ${preferences.wallpaper === 'gradient' ? 'border-2 border-neon-red' : 'border border-neon-red/30'} rounded overflow-hidden`}
+                    >
                       <div className="h-16 rounded bg-gradient-to-r from-neon-purple to-neon-red"></div>
                     </button>
                   </div>
@@ -220,7 +312,7 @@ const Settings: React.FC<SettingsProps> = () => {
                   <UserCircle2 size={64} className="text-neon-red" />
                 </div>
                 <div>
-                  <h4 className="text-white font-medium">User</h4>
+                  <h4 className="text-white font-medium">{user?.username || 'User'}</h4>
                   <p className="text-sm text-gray-400">Administrator</p>
                 </div>
               </div>
@@ -233,7 +325,7 @@ const Settings: React.FC<SettingsProps> = () => {
                   </div>
                   <Switch 
                     checked={autoUpdate}
-                    onCheckedChange={setAutoUpdate}
+                    onCheckedChange={handleAutoUpdateToggle}
                     className="bg-gray-700 data-[state=checked]:bg-neon-red"
                   />
                 </div>
@@ -242,6 +334,14 @@ const Settings: React.FC<SettingsProps> = () => {
                   <Shield size={20} className="text-neon-red mr-3" />
                   <p className="text-sm text-gray-300">System is up to date and secure</p>
                 </div>
+                
+                <Button 
+                  onClick={logout} 
+                  className="mt-6 w-full bg-neon-darker hover:bg-neon-red text-white"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log Out
+                </Button>
               </div>
             </TabsContent>
           </div>

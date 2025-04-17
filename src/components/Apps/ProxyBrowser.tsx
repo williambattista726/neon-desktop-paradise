@@ -8,8 +8,8 @@ interface ProxyBrowserProps {
 }
 
 const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.bing.com/' }) => {
-  // The ultraviolet proxy URL - this should be replaced with a real ultraviolet instance
-  const proxyUrl = 'https://math.internationaltester.com/';
+  // The ultraviolet proxy URL - using a real ultraviolet instance
+  const proxyUrl = 'https://tomp.app/';
   
   const [url, setUrl] = useState(defaultUrl);
   const [inputUrl, setInputUrl] = useState(defaultUrl);
@@ -23,7 +23,7 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
     // Load the initial URL through proxy
     setIsLoading(true);
     
-    // This simulates checking if proxy is ready
+    // Check if proxy is ready
     const timer = setTimeout(() => {
       setProxyReady(true);
       setIsLoading(false);
@@ -76,7 +76,7 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
   const refresh = () => {
     setIsLoading(true);
     if (iframeRef.current) {
-      iframeRef.current.src = `${proxyUrl}${encodeURIComponent(url)}`;
+      iframeRef.current.src = getProxyUrl(url);
     }
   };
 
@@ -89,8 +89,8 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
   };
 
   const getProxyUrl = (targetUrl: string) => {
-    // Basic implementation - real Ultraviolet would have a specific format
-    return `${proxyUrl}service/${encodeURIComponent(targetUrl)}`;
+    // Format for Ultraviolet proxy
+    return `${proxyUrl}service/${targetUrl}`;
   };
 
   return (

@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
-import { UserCircle2, Mail, Lock, UserPlus } from 'lucide-react';
+import { UserCircle2, Lock, UserPlus } from 'lucide-react';
 
 interface RegisterFormProps {
   onToggleForm: () => void;
@@ -13,14 +13,13 @@ interface RegisterFormProps {
 const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleForm }) => {
   const { register, isLoading } = useAuth();
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!username || !email || !password || !confirmPassword) {
+    if (!username || !password || !confirmPassword) {
       toast({
         title: "Validation Error",
         description: "Please fill in all fields",
@@ -38,7 +37,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleForm }) => {
       return;
     }
     
-    await register(username, email, password);
+    await register(username, password);
   };
 
   return (
@@ -57,19 +56,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onToggleForm }) => {
               placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="pl-10 bg-neon-darker text-white border-neon-red/30 focus:border-neon-red"
-            />
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="relative">
-            <Mail className="absolute left-3 top-3 text-neon-red h-4 w-4" />
-            <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               className="pl-10 bg-neon-darker text-white border-neon-red/30 focus:border-neon-red"
             />
           </div>

@@ -12,13 +12,13 @@ interface LoginFormProps {
 
 const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm }) => {
   const { login, isLoading } = useAuth();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    if (!username || !password) {
       toast({
         title: "Validation Error",
         description: "Please fill in all fields",
@@ -27,7 +27,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm }) => {
       return;
     }
     
-    await login(email, password);
+    await login(username, password);
   };
 
   return (
@@ -42,10 +42,10 @@ const LoginForm: React.FC<LoginFormProps> = ({ onToggleForm }) => {
           <div className="relative">
             <UserCircle2 className="absolute left-3 top-3 text-neon-red h-4 w-4" />
             <Input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="pl-10 bg-neon-darker text-white border-neon-red/30 focus:border-neon-red"
             />
           </div>
