@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Cpu, HardDrive, Thermometer, Activity, BarChart3, Ram } from 'lucide-react';
+import { Cpu, HardDrive, Thermometer, Activity, BarChart3 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface SystemMonitorProps {}
@@ -10,13 +9,11 @@ const SystemMonitor: React.FC<SystemMonitorProps> = () => {
   const [cpuUsage, setCpuUsage] = useState<{ time: string; value: number }[]>([]);
   const [memoryUsage, setMemoryUsage] = useState<{ time: string; value: number }[]>([]);
   
-  // Simulate changing data
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
       const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       
-      // Generate random values
       const newCpuValue = Math.floor(Math.random() * 40) + 10; // 10-50%
       const newMemValue = Math.floor(Math.random() * 30) + 40; // 40-70%
       
@@ -59,7 +56,7 @@ const SystemMonitor: React.FC<SystemMonitorProps> = () => {
         <Card className="bg-neon-darker border-neon-red/20">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-medium flex items-center text-gray-200">
-              <Ram size={16} className="text-neon-red mr-2" />
+              <Cpu size={16} className="text-neon-red mr-2" />
               Memory Usage
             </CardTitle>
           </CardHeader>
