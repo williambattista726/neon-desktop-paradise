@@ -1,15 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
-import { Globe, ArrowLeft, ArrowRight, RotateCw, X, BookmarkIcon } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Globe, ArrowLeft, ArrowRight, RotateCw, X, BookmarkIcon, Search } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface ProxyBrowserProps {
   defaultUrl?: string;
 }
 
 const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.bing.com/' }) => {
-  // The ultraviolet proxy URL - using a real ultraviolet instance
-  const proxyUrl = 'https://tomp.app/';
+  // Configuration for Ultraviolet
+  const uvPrefix = '/uv/service/';
+  const uvHostname = 'https://tomp.app';
   
   const [url, setUrl] = useState(defaultUrl);
   const [inputUrl, setInputUrl] = useState(defaultUrl);
@@ -17,7 +20,10 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
   const [history, setHistory] = useState<string[]>([defaultUrl]);
   const [historyIndex, setHistoryIndex] = useState(0);
   const [proxyReady, setProxyReady] = useState(false);
-  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     // Load the initial URL through proxy
@@ -55,6 +61,25 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
     setIsLoading(true);
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    
+    // Use Bing search for the query
+    const searchUrl = `https://www.bing.com/search?q=${encodeURIComponent(searchQuery)}`;
+    setUrl(searchUrl);
+    setInputUrl(searchUrl);
+    
+    // Add to history
+    const newHistory = history.slice(0, historyIndex + 1);
+    newHistory.push(searchUrl);
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+    
+    setIsLoading(true);
+    setShowSearch(false);
+  };
+
   const goBack = () => {
     if (historyIndex > 0) {
       setHistoryIndex(historyIndex - 1);
@@ -88,9 +113,19 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
     setIsLoading(false);
   };
 
+  const toggleSearch = () => {
+    setShowSearch(!showSearch);
+    // Focus the search input when shown
+    if (!showSearch) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  };
+
   const getProxyUrl = (targetUrl: string) => {
     // Format for Ultraviolet proxy
-    return `${proxyUrl}service/${targetUrl}`;
+    return `${uvHostname}${uvPrefix}${encodeURIComponent(targetUrl)}`;
   };
 
   return (
@@ -102,6 +137,7 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
             onClick={goBack}
             disabled={historyIndex <= 0}
             className="w-8 h-8 flex justify-center items-center rounded-full hover:bg-neon-red/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Back"
           >
             <ArrowLeft size={16} className="text-gray-300" />
           </button>
@@ -109,12 +145,14 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
             onClick={goForward}
             disabled={historyIndex >= history.length - 1}
             className="w-8 h-8 flex justify-center items-center rounded-full hover:bg-neon-red/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Forward"
           >
             <ArrowRight size={16} className="text-gray-300" />
           </button>
           <button 
             onClick={refresh}
             className="w-8 h-8 flex justify-center items-center rounded-full hover:bg-neon-red/20"
+            title="Refresh"
           >
             <RotateCw size={16} className={`text-gray-300 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
@@ -141,10 +179,43 @@ const ProxyBrowser: React.FC<ProxyBrowserProps> = ({ defaultUrl = 'https://www.b
           )}
         </form>
         
-        <button className="ml-2 w-8 h-8 flex justify-center items-center rounded-full hover:bg-neon-red/20">
+        <button 
+          className="ml-2 w-8 h-8 flex justify-center items-center rounded-full hover:bg-neon-red/20"
+          onClick={toggleSearch}
+          title="Search"
+        >
+          <Search size={16} className="text-gray-300" />
+        </button>
+        
+        <button 
+          className="ml-2 w-8 h-8 flex justify-center items-center rounded-full hover:bg-neon-red/20"
+          title="Bookmark"
+        >
           <BookmarkIcon size={16} className="text-gray-300" />
         </button>
       </div>
+      
+      {/* Search bar */}
+      {showSearch && (
+        <div className="p-2 bg-neon-darker border-b border-neon-red/20">
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <Input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search the web..."
+              className="flex-1 h-9 bg-neon-dark border-neon-red/30 text-white"
+            />
+            <Button 
+              type="submit" 
+              className="h-9 px-4 bg-neon-red hover:bg-neon-red/80 text-white"
+            >
+              Search
+            </Button>
+          </form>
+        </div>
+      )}
       
       {/* Browser content */}
       <div className="flex-1 bg-white">
